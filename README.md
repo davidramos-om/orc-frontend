@@ -3,4 +3,8 @@
 Scan Text in images using Tessaract JS OCR
 <hr>
 
-<img src="./public//img-1.png" alt="img-1" width="500" height="300">
+<img src="./public/img-1.png" alt="img-1" width="500" height="300">
+
+<br />
+
+[Backend Repo](https://github.com/davidramos-om/orc-backend)
