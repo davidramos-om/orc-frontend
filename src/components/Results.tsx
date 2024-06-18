@@ -11,7 +11,7 @@ export default function Results({ resultText }: ResultsProps) {
         <textarea
           value={resultText}
           readOnly
-          rows={10}
+          rows={30}
           className="w-full h-full p-2 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50"
         />
       </div>

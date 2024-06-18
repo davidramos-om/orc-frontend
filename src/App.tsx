@@ -1,8 +1,8 @@
 import { useState } from "react";
 
-import Upload from "./Upload";
-import Scan from "./Scan";
-import Results from "./Results";
+import Upload from "./components/Upload";
+import Scan from "./components/Scan";
+import Results from "./components/Results";
 
 function App() {
   const [file, setFile] = useState<File | undefined>(undefined);
