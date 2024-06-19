@@ -4,6 +4,9 @@ import { InitOptions, OEM, PSM, createWorker } from "tesseract.js";
 import ServiceWorkerLogs from "./ServiceWorkerLogs";
 import ServiceWorkerEngines from "./ServiceWorkerEngines";
 
+// Reading : https://github.com/naptha/tesseract.js/blob/83df363b848968402ad38f66f6919e775b483f61/docs/performance.md
+// Scheduler for multiple workers, cache,  corePath, langPath: https://tessdata.projectnaptha.com/4.0.0_fast.
+
 type ScanProps = {
   file?: File;
   languages: string[];
@@ -17,6 +20,13 @@ const prepareWorker = async (
 ) => {
   const options: Partial<Tesseract.WorkerOptions> = {
     logger,
+
+    cacheMethod: ".traineddata",
+    //! https://github.com/naptha/tesseract.js/blob/master/docs/local-installation.md
+    // workerPath:
+    //   "https://cdn.jsdelivr.net/npm/tesseract.js@v5.0.0/dist/worker.min.js",
+    // langPath: "https://tessdata.projectnaptha.com/4.0.0",
+    // corePath: "https://cdn.jsdelivr.net/npm/tesseract.js-core@v5.0.0",
   };
 
   const config: string | Partial<InitOptions> = {
