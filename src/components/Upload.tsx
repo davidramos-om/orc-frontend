@@ -39,8 +39,7 @@ const Upload = ({ onUploadFile }: ScanProps) => {
               ></path>
             </svg>
             <p className="mb-2 text-sm text-gray-500">
-              <span className="font-semibold">Click to upload</span> or drag and
-              drop
+              <span className="font-semibold">Click to upload</span>
             </p>
             <p className="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
           </div>

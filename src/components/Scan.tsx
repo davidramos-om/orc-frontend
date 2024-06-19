@@ -75,12 +75,12 @@ const Scan = ({ file, onScanComplete }: ScanProps) => {
         onClick={handleScanImage}
         className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
       >
-        Scan Image
+        Scan Image using Backend API
       </button>
       <hr className="my-4" />
       <ServiceWorkerButton
         file={file}
-        languages={[language.code]}
+        languages={[language.code, "eng"]}
         onScanComplete={onScanComplete}
       />
       {error && <p className="text-center text-red-500">{error}</p>}

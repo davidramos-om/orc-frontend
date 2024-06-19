@@ -1,7 +1,8 @@
 import { useRef, useState, useReducer, useEffect } from "react";
-import { OEM, createWorker } from "tesseract.js";
+import { InitOptions, OEM, createWorker } from "tesseract.js";
 
 import ServiceWorkerLogs from "./ServiceWorkerLogs";
+import ServiceWorkerEngines from "./ServiceWorkerEngines";
 
 type ScanProps = {
   file?: File;
@@ -11,11 +12,21 @@ type ScanProps = {
 
 const prepareWorker = async (
   langs: string[],
+  engine: OEM,
   logger: (arg: Tesseract.LoggerMessage) => void
 ) => {
-  const worker = createWorker(langs, OEM.DEFAULT, {
+  const options: Partial<Tesseract.WorkerOptions> = {
     logger,
-  });
+  };
+
+  const config: string | Partial<InitOptions> = {
+    load_bigram_dawg: "true",
+    load_system_dawg: "true",
+    load_freq_dawg: "true",
+    load_punc_dawg: "true",
+  };
+
+  const worker = createWorker(langs, engine, options, config);
 
   return worker;
 };
@@ -27,6 +38,7 @@ export default function ServiceWorkerButton({
 }: ScanProps) {
   const [, forceUpdate] = useReducer((x) => x + 1, 0);
   const updateController = useRef(0);
+  const [engine, setEngine] = useState<OEM>(OEM.TESSERACT_LSTM_COMBINED);
 
   const logs = useRef<string[]>([]);
   const workerRef = useRef<Tesseract.Worker | null>(null);
@@ -38,9 +50,7 @@ export default function ServiceWorkerButton({
     if (!working) return;
 
     const interval = setInterval(() => {
-      console.log("Interval", updateController.current);
       if (working) {
-        console.log("Forcing update");
         updateController.current += 1;
         forceUpdate();
       }
@@ -50,8 +60,9 @@ export default function ServiceWorkerButton({
   }, [working]);
 
   const logger = (message: Tesseract.LoggerMessage) => {
+    const pPercentage = (message.progress * 100).toFixed(2) + "%";
     logs.current.push(
-      `Job ID: ${message.jobId}, Progress: ${message.progress}, Status: ${message.status}, Worker ID: ${message.workerId}`
+      `Job ID: ${message.jobId}, Progress: ${pPercentage}, Status: ${message.status}, Worker ID: ${message.workerId}`
     );
   };
 
@@ -60,20 +71,20 @@ export default function ServiceWorkerButton({
       if (!file) return;
 
       logs.current = [];
-      if (!workerRef.current) {
-        const _worker = await prepareWorker(languages, logger);
-        logs.current.push("Worker created");
-        workerRef.current = _worker;
-      }
+
+      logs.current.push(
+        `Creating worker with parameters ${languages}, ${engine}`
+      );
+      workerRef.current = await prepareWorker(languages, engine, logger);
+      logs.current.push("Worker created");
 
       const worker = workerRef.current;
 
-      jobRef.current = await worker.load();
+      jobRef.current = await worker.load(jobRef.current?.jobId);
       logs.current.push("Job loaded");
 
       logs.current.push("Recognizing text in image");
       setWorking(true);
-      await worker.recognize(file);
       const { data } = await worker.recognize(file);
       console.dir({ data }, { depth: null });
       onScanComplete?.(data.text);
@@ -100,15 +111,22 @@ export default function ServiceWorkerButton({
 
   return (
     <>
+      <ServiceWorkerEngines onSelectedEngine={setEngine} />
       <button
         disabled={working}
         onClick={handleScanImage}
-        className="w-full px-4 py-2 bg-lime-500 text-white rounded-lg hover:bg-lime-700 focus:outline-none focus:ring-2 focus:ring-lime-500 focus:ring-opacity-50"
+        className={`w-full px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-opacity-50
+    ${
+      working
+        ? "bg-gray-400 text-gray-700 cursor-not-allowed focus:ring-gray-400"
+        : "bg-lime-500 text-white hover:bg-lime-700 focus:ring-lime-500"
+    }`}
       >
-        {working ? "Working..." : "Scan Image with Service Worker"}
+        {working ? "Working..." : "Scan Image using Service Worker"}
       </button>
       {working && (
-        <div className="flex flex-col items-start justify-start">
+        <div className="flex flex-col items-center justify-center">
+          <hr className="my-4" />
           <button
             onClick={handleTerminateWorker}
             className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-50"
