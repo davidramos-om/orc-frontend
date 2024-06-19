@@ -1,5 +1,5 @@
 import { useRef, useState, useReducer, useEffect } from "react";
-import { InitOptions, OEM, createWorker } from "tesseract.js";
+import { InitOptions, OEM, PSM, createWorker } from "tesseract.js";
 
 import ServiceWorkerLogs from "./ServiceWorkerLogs";
 import ServiceWorkerEngines from "./ServiceWorkerEngines";
@@ -24,6 +24,8 @@ const prepareWorker = async (
     load_system_dawg: "true",
     load_freq_dawg: "true",
     load_punc_dawg: "true",
+    load_number_dawg: "true",
+    load_unambig_dawg: "true",
   };
 
   const worker = createWorker(langs, engine, options, config);
@@ -79,13 +81,18 @@ export default function ServiceWorkerButton({
       logs.current.push("Worker created");
 
       const worker = workerRef.current;
+      const params: Partial<Tesseract.WorkerParams> = {
+        tessedit_pageseg_mode: PSM.AUTO_ONLY,
+      };
+      worker.setParameters(params);
+      logs.current.push("Parameters set: " + JSON.stringify(params));
 
       jobRef.current = await worker.load(jobRef.current?.jobId);
       logs.current.push("Job loaded");
 
       logs.current.push("Recognizing text in image");
       setWorking(true);
-      const { data } = await worker.recognize(file);
+      const { data } = await worker.recognize(file, {}, {});
       console.dir({ data }, { depth: null });
       onScanComplete?.(data.text);
       logs.current.push("Text recognized");
@@ -111,11 +118,11 @@ export default function ServiceWorkerButton({
 
   return (
     <>
-      <ServiceWorkerEngines onSelectedEngine={setEngine} />
+      <ServiceWorkerEngines value={engine} onSelectedEngine={setEngine} />
       <button
         disabled={working}
         onClick={handleScanImage}
-        className={`w-full px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-opacity-50
+        className={`w-full px-4 py-2 mt-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-opacity-50
     ${
       working
         ? "bg-gray-400 text-gray-700 cursor-not-allowed focus:ring-gray-400"
