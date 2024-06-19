@@ -1,5 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
+import ServiceWorkerButton from "./ServiceWorkerButton";
 
 type ScanProps = {
   file?: File;
@@ -76,6 +77,12 @@ const Scan = ({ file, onScanComplete }: ScanProps) => {
       >
         Scan Image
       </button>
+      <hr className="my-4" />
+      <ServiceWorkerButton
+        file={file}
+        languages={[language.code]}
+        onScanComplete={onScanComplete}
+      />
       {error && <p className="text-center text-red-500">{error}</p>}
     </>
   );
